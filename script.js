@@ -17,9 +17,9 @@ function cargarCanciones() {
         const li = document.createElement('li');
         li.className = 'cancion-item'; // Clase CSS para un diseño uniforme
         li.innerHTML = `
-            <img src="${cancion.portada}" alt="Portada de ${cancion.nombre}">
+            <img src="${cancion.portada}" alt="Portada de ${cancion.nombre}" loading="lazy">
             <span>${cancion.nombre}</span>
-            <audio controls>
+            <audio controls preload="metadata">
                 <source src="${cancion.url}" type="audio/mp3">
                 Tu navegador no soporta el elemento de audio.
             </audio>
@@ -28,27 +28,30 @@ function cargarCanciones() {
 
         const audio = li.querySelector('audio');
 
-        // Cuando se reproduce una canción, detendremos cualquier otra que se esté reproduciendo
+        // Detener otras canciones al reproducir esta
         audio.addEventListener('play', () => {
-            // Detenemos todas las canciones que no sean la actual
-            document.querySelectorAll('audio').forEach((otherAudio, otherIndex) => {
+            document.querySelectorAll('audio').forEach((otherAudio) => {
                 if (otherAudio !== audio) {
                     otherAudio.pause();
-                    otherAudio.currentTime = 0; // Volver al inicio
+                    otherAudio.currentTime = 0;
                 }
             });
         });
 
-        // Cuando una canción termine, se reproducirá automáticamente la siguiente
+        // Reproducir automáticamente la siguiente canción al terminar
         audio.addEventListener('ended', () => {
-            const nextIndex = index + 1;
-            if (nextIndex < canciones.length) {
-                const nextAudio = playlistContainer.children[nextIndex].querySelector('audio');
+            const nextAudio = playlistContainer.children[index + 1]?.querySelector('audio');
+            if (nextAudio) {
                 nextAudio.play();
             }
+        });
+
+        // Manejo de errores en la carga
+        audio.addEventListener('error', () => {
+            console.error(`Error al cargar el archivo: ${cancion.url}`);
         });
     });
 }
 
 // Llamamos a la función para cargar las canciones cuando se carga la página
-cargarCanciones();
+document.addEventListener('DOMContentLoaded', cargarCanciones);
